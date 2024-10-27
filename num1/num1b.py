@@ -14,7 +14,7 @@ x = 0.2
 
 exact = accurate_derivative(x)
 
-h_values = np.logspace(-10, -1, num=10000)
+h_values = np.logspace(-10, -1, num=500)
 
 errors_float32 = []
 errors_float64 = []
@@ -32,5 +32,9 @@ plt.figure(figsize=(10, 6))
 plt.loglog(h_values, errors_float32, label="Derivative approximation error float32", color='red')
 plt.loglog(h_values, errors_float64, label="Derivative approximation error float64", color='blue')
 
+plt.xlabel("h (log scale)")
+plt.ylabel("Error (log scale)")
+plt.savefig("num1b.png")
+plt.legend()
 plt.grid(True, "both", ls="--")
 plt.show()
