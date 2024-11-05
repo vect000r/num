@@ -1,6 +1,7 @@
 from functools import reduce
 import time
-import numpy as np
+import numpy as np 
+from scipy import linalg
 import matplotlib.pyplot as plt
 
 def createMatrix(n: int) -> list:
@@ -53,7 +54,7 @@ def solveA(A: list, x: list, n: int) -> float:
 
 def graphTimes(values: list):
     times = []
-    
+    numpy_times = []    
     for value in values:
         A = createMatrix(value)
         x = createX(value)
@@ -64,12 +65,20 @@ def graphTimes(values: list):
         end = time.time()
         times.append(end - start)
 
+        start = time.time()
+        A_np = np.array(A)
+        x_np = np.array(x)
+        linalg.lu(A_np)
+        end = time.time()
+        numpy_times.append(end - start)
+
         determinant = reduce(lambda x, y: x * y, A[1])
         print(determinant)
     
     
     plt.figure(figsize=(10, 6))
     plt.plot(values, times, 'b-', label='Custom method', marker = 'o')
+    plt.plot(values, numpy_times, 'r-', label='Numpy method', marker = 'o')
     plt.xlabel('Matrix size (N)')
     plt.ylabel('Time taken [s]')
     plt.title('Comparison of time taken to compute the result between a custom method and numpy method')
@@ -79,6 +88,5 @@ def graphTimes(values: list):
     plt.show()
 
 
-values = [100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200, 210, 220, 230, 240, 250, 260, 270, 280, 290, 300]
-
+values = [x for x in range(300, 1000)]
 graphTimes(values)
