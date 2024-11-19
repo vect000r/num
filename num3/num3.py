@@ -87,7 +87,7 @@ def graphTimes(values: list):
     plt.show()
 
 
-values = [x for x in range(300, 100001)]
+values = [x for x in range(3,303)]
 graphTimes(values)
 
 A = createMatrix(300)

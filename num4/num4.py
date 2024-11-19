@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import time
+import num3
+
 
 def create_matrix(N):
     matrix = np.ones((N, N))
@@ -10,6 +12,12 @@ def create_matrix(N):
 
 def create_b(N):
     return np.full((N, 1), 2)  
+
+def create_banded_matrix(N):
+    A = []
+    A.append([0] + [2] * N)
+    A.append([4] * N)
+    return A
 
 def sherman_morrison(N):
     b = create_b(N)  
@@ -24,21 +32,14 @@ def sherman_morrison(N):
     B = np.zeros((N, N))
     np.fill_diagonal(B, 4)  # główna przekątna
     np.fill_diagonal(B[:-1,1:], 2)  # nad przekątną
-
-    # Obliczanie odwrotności B (B^-1)
-    B_inv = np.zeros((N, N))
-    for i in range(N):
-        for j in range(i, N):
-            value = (-1.0) ** (j - i) / (4.0 ** (j - i + 1))
-            B_inv[i, j] = value
-
-    # Wzór Shermana-Morrisona
-    z = B_inv @ b
-    vt_B_inv_u = v.T @ B_inv @ u  # skalar
-    w = B_inv @ u
     
-
-    return z - ((v.T @ z) * w) / (1 + vt_B_inv_u)
+    #B_banded = create_banded_matrix(N)
+    #num3.LU(B_banded, b, N)
+    z = num3.solveA(B, b, N)
+    q = num3.solveA(B, u, N)
+    
+    w = z -((v.T @ z) / (1 + (v.T @ q))) * q
+    return w
 
 def check(N):
     A = create_matrix(N)
@@ -51,26 +52,40 @@ def check(N):
     return absolute_err
 
 def graph_time():
-    N_values = [x for x in range(120)]
+    N_values = [x for x in range(10, 120)]
     times = []
+    numpy_times = []
 
     for N in N_values:
         start = time.time()
-        x = sherman_morrison(N)
+        sherman_morrison(N)
         end = time.time()
         result = end - start
         times.append(result)
     
+    for N in N_values:
+        A = create_matrix(N)
+        b = create_b(N)
+        
+        
+        start = time.time()
+        np.linalg.solve(A, b)
+        end = time.time()
+        numpy_times.append(end - start)
+
+
 
     plt.figure(figsize=(10, 6))
     plt.plot(N_values, times, 'b-', label='Custom method', marker = 'o')
+    plt.plot(N_values, numpy_times, 'r-', label='Numpy method', marker = 'o')
     plt.xlabel('Matrix size (N)')
     plt.ylabel('Time taken [s]')
     plt.title('Comparison of time taken to compute the result between a custom method and numpy method')
     plt.grid(True)
     plt.legend()
-    plt.savefig('execution_time.png')
+    plt.savefig('num4/execution_time.png')
     plt.show()
 
+print(f"Absolute error: {check(120)}")
 graph_time()
 
