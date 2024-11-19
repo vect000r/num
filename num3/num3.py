@@ -72,8 +72,7 @@ def graphTimes(values: list):
         end = time.time()
         numpy_times.append(end - start)
 
-        determinant = reduce(lambda x, y: x * y, A[1])
-        print(determinant)
+        
     
     
     plt.figure(figsize=(10, 6))
@@ -88,5 +87,14 @@ def graphTimes(values: list):
     plt.show()
 
 
-values = [x for x in range(300, 1000)]
+values = [x for x in range(300, 100001)]
 graphTimes(values)
+
+A = createMatrix(300)
+x = createX(300)
+
+LU(A, x, 300)
+solution = solveA(A, x, 300)
+determinant = reduce(lambda x, y: x * y, A[1])
+print(determinant)
+print(solution)
