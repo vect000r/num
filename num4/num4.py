@@ -2,59 +2,56 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 
-def create_matrix(N):
+def create_matrix(N: int) -> list:
     matrix = np.ones((N, N))
     np.fill_diagonal(matrix, 5)
     np.fill_diagonal(matrix[:-1,1:], 3)
     return matrix
 
-def create_b(N):
+def create_b(N: int) -> np.ndarray:
     return np.full(N, 2)  
 
-def create_banded_matrix(N):
+def create_banded_matrix(N: int) -> list:
     A = []
-    A.append([4] * N)
-    A.append([2] * (N-1) + [0])
+    A.append([5] * N)
+    A.append([3] * (N-1) + [1])
     return A
 
-def backward_substitution(M, b, N):
-    # Backward substitution do wyznaczenia wektorów z i q
-    z = [0] * N
-    q = [0] * N
-
-    z[N - 1] = b[N - 1] / M[0][N - 1]
-    q[N - 1] = 1 / M[0][N - 1]
-
-    for i in range(N - 2, -1, -1):
-        z[i] = (b[i] - M[1][i] * z[i + 1]) / M[0][i]
-        q[i] = (0 - M[1][i] * q[i + 1]) / M[0][i]
-
+def backward_substitution(M: list, b: np.ndarray, N: int) -> tuple:
+    z = np.zeros(N)
+    q = np.zeros(N)
+    
+    z[N-1] = b[N-1] / M[0][N-1]
+    q[N-1] = -1.0 / M[0][N-1]  
+    
+    # Backward substitution
+    for i in range(N-2, -1, -1):
+        z[i] = (b[i] - M[1][i] * z[i+1]) / M[0][i]
+        q[i] = (-1.0 - M[1][i] * q[i+1]) / M[0][i]  
+    
     return z, q
 
-def sherman_morrison(N):
+def sherman_morrison(N: int) -> np.ndarray:
     b = create_b(N)
+    B = create_banded_matrix(N)
+    z, q = backward_substitution(B, b, N)
+    
+    u = np.ones(N)
+    
+    vt_z = np.dot(u, z)
+    vt_q = np.dot(u, q)
+    
+    alpha = vt_z / (1 + vt_q)
+    x = z - alpha * q
+    
+    return x
 
-    # Tworzenie macierzy pasmowej
-    M = create_banded_matrix(N)
-
-    # Rozwiązywanie równań
-    z, q = backward_substitution(M, b, N)
-
-    # Wyliczanie końcowego wyniku
-    # w = z - ((v.T @ z) / (1 + v.T @ q)) * q
-    vT_z = sum(z)  
-    vT_q = sum(q)  
-
-    w = [z[i] - ((vT_z / (1 + vT_q)) * q[i]) for i in range(N)]
-
-    return w
-
-def check(N):
+def check(N: int) -> np.ndarray:
     A = create_matrix(N)
     b = create_b(N)
     numpy_solution = np.linalg.solve(A, b)
     my_solution = sherman_morrison(N)
-
+    print(my_solution)
     absolute_err = abs(numpy_solution - my_solution)
 
     return absolute_err
@@ -64,7 +61,7 @@ def graph_time():
     times = []
     numpy_times = []
 
-    # Czasy dla metody własnej
+    # Czasy dla metody wlasnej
     for N in N_values:
         start = time.time()
         sherman_morrison(N)
