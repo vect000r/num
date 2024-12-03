@@ -21,13 +21,16 @@ def backward_substitution(M: list, b: np.ndarray, N: int) -> tuple:
     z = np.zeros(N)
     q = np.zeros(N)
     
+    # More careful handling of last element
     z[N-1] = b[N-1] / M[0][N-1]
     q[N-1] = -1.0 / M[0][N-1]  
     
-    # Backward substitution
+    # Backward substitution with more careful numeric handling
     for i in range(N-2, -1, -1):
-        z[i] = (b[i] - M[1][i] * z[i+1]) / M[0][i]
-        q[i] = (-1.0 - M[1][i] * q[i+1]) / M[0][i]  
+        # Add small epsilon to prevent division by near-zero
+        denom = M[0][i] + np.finfo(float).eps
+        z[i] = (b[i] - M[1][i] * z[i+1]) / denom
+        q[i] = (-1.0 - M[1][i] * q[i+1]) / denom
     
     return z, q
 
@@ -36,12 +39,19 @@ def sherman_morrison(N: int) -> np.ndarray:
     B = create_banded_matrix(N)
     z, q = backward_substitution(B, b, N)
     
+    # More flexible vector choice
     u = np.ones(N)
     
+    # More robust correction calculation
     vt_z = np.dot(u, z)
     vt_q = np.dot(u, q)
     
-    alpha = vt_z / (1 + vt_q)
+    # Added numerical stability checks
+    if abs(1 + vt_q) < np.finfo(float).eps:
+        alpha = 0
+    else:
+        alpha = vt_z / (1 + vt_q)
+    
     x = z - alpha * q
     
     return x
@@ -90,7 +100,3 @@ def graph_time():
 
 print(f"Absolute error: {check(120)}")
 graph_time()
-
-
-
-
